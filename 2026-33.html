@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Askona — воронка по неделе в разрезе сегментов (Яндекс.Метрика)</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --card-shadow:    0 1px 2px rgba(11,11,11,0.04);
+    --row-alt:        #f4f3f0;
+
+    --good:    #0ca30c;
+    --critical:#d03b3b;
+    --good-bg:     rgba(12,163,12,0.12);
+    --critical-bg: rgba(208,59,59,0.12);
+
+    --c-aze:      #2a78d6;
+    --c-by:       #eda100;
+    --c-kz:       #e87ba4;
+    --c-uz:       #008300;
+    --c-kg:       #4a3aa7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --card-shadow:    0 1px 2px rgba(0,0,0,0.3);
+      --row-alt:        #202020;
+
+      --good-bg:     rgba(12,163,12,0.18);
+      --critical-bg: rgba(230,103,103,0.18);
+      --critical:    #e66767;
+
+      --c-aze:      #3987e5;
+      --c-by:       #c98500;
+      --c-kz:       #d55181;
+      --c-uz:       #008300;
+      --c-kg:       #9085e9;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --card-shadow:    0 1px 2px rgba(0,0,0,0.3);
+    --row-alt:        #202020;
+
+    --good-bg:     rgba(12,163,12,0.18);
+    --critical-bg: rgba(230,103,103,0.18);
+    --critical:    #e66767;
+
+    --c-aze:      #3987e5;
+    --c-by:       #c98500;
+    --c-kz:       #d55181;
+    --c-uz:       #008300;
+    --c-kg:       #9085e9;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  body { padding: 28px 20px 60px; }
+  .wrap { max-width: 1320px; margin: 0 auto; }
+
+  header.page-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 700; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin: 0; max-width: 900px; }
+  button.ghost-btn {
+    font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
+    cursor: pointer;
+  }
+  button.ghost-btn:hover { background: var(--gridline); }
+
+  .tab-row {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+  }
+  .tab-btn {
+    font: inherit; font-size: 13.5px; font-weight: 600; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-secondary);
+    cursor: pointer; display: flex; align-items: center; gap: 7px;
+  }
+  .tab-btn .dot { width: 9px; height: 9px; border-radius: 3px; }
+  .tab-btn.active { color: #fff; border-color: transparent; }
+  .tab-btn:not(.active):hover { background: var(--gridline); }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+    gap: 12px; margin-bottom: 16px;
+  }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;
+  }
+  @media (max-width: 700px) { .kpi-grid { grid-template-columns: 1fr; } }
+  .kpi-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--card-shadow); padding: 12px 14px; border-top: 3px solid var(--accent);
+  }
+  .kpi-card .lbl { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+  .kpi-card .val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kpi-card .val .kpi-prev { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-left: 5px; }
+  .kpi-card .delta { font-size: 11.5px; margin-top: 3px; }
+
+  .delta-chip {
+    display: inline-block; font-size: 10.5px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .delta-up { color: var(--good); }
+  .delta-down { color: var(--critical); }
+  .delta-na { color: var(--text-muted); }
+
+  section.seg-block { margin-bottom: 22px; }
+  section.seg-block > h2 {
+    font-size: 14.5px; margin: 0 0 2px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+  }
+  section.seg-block > h2 .count-pill {
+    font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--gridline);
+    border-radius: 999px; padding: 2px 8px;
+  }
+  section.seg-block > .block-sub { font-size: 12px; color: var(--text-muted); margin: 0 0 8px; }
+
+  .table-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--card-shadow); overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+  table.seg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 720px; }
+  table.seg-table th, table.seg-table td {
+    text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--gridline);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  table.seg-table th:first-child, table.seg-table td:first-child { text-align: left; white-space: normal; }
+  table.seg-table thead th {
+    color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .02em; background: var(--row-alt); border-bottom: 1px solid var(--border);
+  }
+  table.seg-table td .cur { color: var(--text-primary); font-weight: 600; }
+  table.seg-table td .prev { color: var(--text-muted); font-size: 11px; margin-left: 4px; }
+  table.seg-table td .ch-name { font-weight: 500; color: var(--text-primary); }
+  table.seg-table td .cell-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; line-height: 1.3; }
+  table.seg-table td .cell-stack .delta-chip { font-size: 10px; }
+  table.seg-table th:last-child, table.seg-table td:last-child { border-left: 1px solid var(--border); }
+  table.seg-table td:last-child .cur { color: var(--text-primary); }
+
+  /* Collapsible segment tree (Итого → Новые/Вернувшиеся → платформа → канал) */
+  table.tree-table tbody tr.lvl-0 td { font-weight: 700; border-top: 1px solid var(--border); background: transparent; }
+  table.tree-table tbody tr.lvl-1 { background: var(--row-alt); }
+  table.tree-table tbody tr.lvl-1 td { font-weight: 600; }
+  table.tree-table tbody tr.lvl-2 td { font-weight: 500; color: var(--text-secondary); }
+  table.tree-table tbody tr[data-key]:not([data-key=""]) { cursor: pointer; }
+  table.tree-table tbody tr[data-key]:not([data-key=""]):hover td { background: var(--gridline); }
+  table.tree-table tbody tr.lvl-3 td .ch-name { font-weight: 400; color: var(--text-secondary); }
+  table.tree-table td:first-child { padding-top: 6px; padding-bottom: 6px; }
+  .row-cell { display: inline-flex; align-items: center; gap: 6px; }
+  .twisty {
+    font: inherit; background: none; border: none; cursor: pointer; padding: 0;
+    width: 14px; flex: none; text-align: center; font-size: 10px; color: var(--text-muted);
+    line-height: 1;
+  }
+  .twisty:hover { color: var(--text-primary); }
+  .twisty.placeholder { visibility: hidden; cursor: default; }
+
+  .insights-card {
+    background: var(--surface-1); border: 1px solid var(--border); border-left: 3px solid var(--accent-current);
+    border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: var(--text-secondary);
+    margin-bottom: 22px;
+  }
+  .insights-card .insights-title { font-weight: 700; color: var(--text-primary); margin-bottom: 6px; font-size: 12.5px; }
+  .insights-card .insights-auto { line-height: 1.6; }
+  .insights-card .insights-manual { line-height: 1.6; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); color: var(--text-primary); }
+  .insights-card .insights-manual.is-empty { color: var(--text-muted); font-style: italic; }
+
+  footer.notes { margin-top: 22px; font-size: 11.5px; color: var(--text-muted); line-height: 1.55; max-width: 1100px; }
+
+  .archive-nav:empty { display: none; }
+  .archive-nav { font-size: 11.5px; color: var(--text-muted); margin-bottom: 14px; }
+  .archive-nav a { color: var(--text-secondary); text-decoration: none; margin-right: 10px; }
+  .archive-nav a:hover { text-decoration: underline; }
+  .archive-nav .archive-label { color: var(--text-muted); margin-right: 6px; }
+</style>
+</head>
+<body>
+<div id="askona-gate" style="position:fixed;inset:0;z-index:999999;background:#1c1b19;
+  display:flex;align-items:center;justify-content:center;font-family:-apple-system,
+  BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <div style="background:#26241f;border:1px solid #3a3833;border-radius:12px;
+    padding:32px 36px;max-width:340px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4);">
+    <div style="color:#eae8e3;font-size:16px;font-weight:600;margin-bottom:6px;">
+      Askona — воронка недели</div>
+    <div style="color:#a8a59e;font-size:13px;margin-bottom:16px;">
+      Внутренний дашборд команды. Введите пароль.</div>
+    <input id="askona-gate-input" type="password" autocomplete="off"
+      style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;
+      border:1px solid #4a473f;background:#1c1b19;color:#eae8e3;font-size:14px;
+      margin-bottom:10px;outline:none;" placeholder="Пароль">
+    <button id="askona-gate-btn"
+      style="width:100%;padding:10px 12px;border-radius:8px;border:none;
+      background:#6c63ff;color:#fff;font-size:14px;font-weight:600;cursor:pointer;">
+      Войти</button>
+    <div id="askona-gate-err" style="color:#e0655b;font-size:12px;margin-top:10px;
+      min-height:14px;"></div>
+  </div>
+</div>
+<script>
+(function() {
+  var PASS = "ndj.vfnm";
+  var KEY = "askona_gate_ok";
+  function reveal() {
+    var gate = document.getElementById('askona-gate');
+    if (gate) gate.remove();
+    document.documentElement.style.overflow = '';
+  }
+  function tryUnlock() {
+    var input = document.getElementById('askona-gate-input');
+    var err = document.getElementById('askona-gate-err');
+    if (input.value === PASS) {
+      try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+      reveal();
+    } else {
+      err.textContent = 'Неверный пароль';
+      input.value = '';
+      input.focus();
+    }
+  }
+  var already = false;
+  try { already = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+  if (already) {
+    reveal();
+  } else {
+    document.documentElement.style.overflow = 'hidden';
+    document.getElementById('askona-gate-btn').addEventListener('click', tryUnlock);
+    document.getElementById('askona-gate-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') tryUnlock();
+    });
+    document.getElementById('askona-gate-input').focus();
+  }
+})();
+</script>
+
+<div class="wrap">
+
+  <header class="page-head">
+    <div>
+      <h1>Askona — воронка недели в разрезе сегментов</h1>
+      <p class="subtitle">Неделя 33 · 10–16 августа 2026 vs 11–17 августа 2025 (та же ISO-неделя) · только визиты из страны присутствия магазина · разрез: шаг воронки → новые/вернувшиеся → устройство → канал трафика</p>
+    </div>
+    <button class="ghost-btn" id="theme-btn" type="button">🌙 Тёмная тема</button>
+  </header>
+
+  <div id="archive-nav" class="archive-nav"><span class="archive-label">Прошлые недели:</span><a href="weeks/2026-33.html">Неделя 33, 2026 (2026-08-10 – 2026-08-16)</a></div>
+
+  <div class="tab-row" id="tab-row"></div>
+
+  <div class="toolbar">
+    <div id="prev-note" style="font-size:12px;color:var(--text-muted);"></div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div id="segments-container"></div>
+
+  <footer class="notes">
+    Данные — Reporting API Яндекс.Метрики, метрика ym:s:visits, измерения ym:s:trafficSource × ym:s:productEventType (плюс отдельный запрос без productEventType — для стадии «Посетители»), сегментированные по ym:s:isNewUser (новые/вернувшиеся) и ym:s:deviceCategory (ПК/мобайл), с фильтром по стране присутствия магазина (ym:s:regionCountry). Воронка повторяет структуру стандартной e-commerce воронки Метрики: «Посетители» (все визиты сегмента, без привязки к товарным событиям) → «Листинг» (просмотр списка товара) → «Клик по товару» → «Карточка товара» → «Корзина» → «Покупка». Таблица — сворачиваемое дерево, как в самой Метрике: «Итого и средние» → Новые/Вернувшиеся → платформа (Смартфоны/ПК) → канал трафика; стрелка слева от строки разворачивает следующий уровень, по умолчанию видны только «Итого» и Новые/Вернувшиеся. Планшеты и прочие категории устройств в разбивку не включены — это даёт ~1–3% недосчёта визитов по сравнению с общими показателями воронки. Кыргызстан: сравнение не год к году, а к аналогичной неделе месяц назад (13–19 июля 2026) — счётчик пока не проработал полный год, вернёмся к сравнению год к году, когда наберётся история. Каналы с нулевыми значениями по всем стадиям в очередном сегменте не показываются. KPI-карточка «Конверсия (весь трафик)» — Покупка / Посетители по всей стране; столбец таблицы «Конверсия в покупку» — более узкая конверсия внутри канала: Покупка / Листинг (доля тех, кто уже просмотрел листинг), в процентах; подпись под значением — относительное изменение самого показателя конверсии год к году. Блок «Причины отклонений» под таблицами: верхняя строка — авто-подсказка, самый конкретный сегмент (новые/вернувшиеся × платформа × канал), давший наибольший вклад в изменение показателя (это не причина, а сигнал, откуда смотреть); нижняя строка — комментарий аналитика, добавляется вручную.
+  </footer>
+
+</div>
+
+<script>
+const DATA = {"aze": {"cur": {"new": {"desktop": {"ad": [136, 102, 37, 67, 5, 1], "organic": [92, 81, 25, 37, 1, 0], "direct": [10, 5, 0, 4, 0, 0], "referral": [8, 5, 1, 4, 0, 0], "internal": [3, 0, 0, 1, 0, 0], "email": [1, 1, 0, 0, 0, 0]}, "mobile": {"ad": [2022, 745, 236, 437, 16, 1], "organic": [407, 328, 104, 149, 4, 0], "direct": [252, 129, 47, 123, 5, 1], "referral": [82, 56, 20, 25, 2, 1], "internal": [54, 30, 12, 35, 0, 1], "social": [49, 31, 11, 22, 3, 0], "email": [6, 6, 3, 3, 2, 1]}}, "returning": {"desktop": {"internal": [371, 244, 42, 294, 1, 3], "ad": [220, 151, 68, 158, 5, 1], "direct": [117, 63, 20, 82, 1, 1], "organic": [34, 29, 8, 23, 0, 0], "referral": [4, 3, 2, 3, 0, 0]}, "mobile": {"ad": [1066, 642, 200, 498, 22, 6], "direct": [297, 152, 67, 182, 7, 2], "internal": [269, 78, 31, 153, 8, 3], "organic": [129, 102, 40, 52, 1, 0], "referral": [42, 29, 11, 14, 4, 0], "social": [11, 9, 2, 5, 0, 0], "email": [6, 4, 2, 2, 1, 0]}}}, "prev": {"new": {"desktop": {"ad": [274, 123, 44, 109, 5, 1], "organic": [124, 102, 32, 54, 4, 0], "direct": [26, 13, 6, 17, 0, 0], "internal": [8, 2, 0, 4, 0, 0], "referral": [4, 4, 1, 1, 0, 0], "email": [2, 1, 1, 1, 1, 1]}, "mobile": {"ad": [15035, 3275, 344, 1120, 29, 5], "organic": [429, 312, 117, 173, 6, 2], "direct": [223, 104, 28, 98, 4, 0], "referral": [109, 69, 27, 40, 1, 0], "social": [37, 31, 12, 16, 0, 0], "internal": [111, 27, 6, 30, 1, 0], "email": [1, 0, 0, 0, 0, 0]}}, "returning": {"desktop": {"internal": [268, 156, 34, 199, 5, 0], "ad": [305, 164, 59, 187, 6, 1], "direct": [144, 66, 25, 88, 2, 0], "organic": [62, 46, 14, 31, 0, 0], "referral": [4, 3, 1, 1, 0, 0], "email": [1, 1, 1, 1, 0, 0], "messenger": [1, 1, 0, 1, 0, 0]}, "mobile": {"ad": [4952, 1120, 283, 1541, 29, 6], "direct": [216, 99, 48, 136, 3, 0], "internal": [278, 86, 47, 133, 6, 1], "organic": [175, 115, 55, 82, 5, 0], "referral": [39, 22, 9, 13, 1, 1], "social": [16, 12, 3, 7, 0, 1], "email": [4, 1, 0, 1, 0, 0], "recommend": [1, 0, 0, 1, 0, 0]}}}}, "by": {"cur": {"new": {"desktop": {"organic": [1028, 878, 225, 359, 28, 7], "ad": [944, 825, 265, 550, 39, 5], "direct": [180, 116, 21, 85, 8, 0], "internal": [80, 49, 13, 53, 2, 0], "referral": [31, 19, 7, 10, 1, 0], "email": [18, 12, 7, 8, 3, 2]}, "mobile": {"ad": [8326, 5888, 1451, 3188, 142, 19], "direct": [5617, 4407, 127, 2768, 31, 5], "organic": [4191, 3516, 984, 1346, 80, 10], "internal": [646, 320, 64, 167, 17, 4], "referral": [126, 100, 32, 49, 8, 2], "email": [156, 95, 11, 17, 0, 0], "social": [85, 69, 13, 35, 1, 0], "recommend": [3, 2, 0, 0, 0, 0], "messenger": [2, 2, 0, 2, 0, 0]}}, "returning": {"desktop": {"ad": [1465, 1203, 306, 1070, 51, 3], "internal": [1550, 988, 220, 1191, 42, 13], "organic": [866, 654, 145, 565, 20, 5], "direct": [787, 451, 102, 483, 23, 9], "referral": [45, 11, 3, 15, 0, 0], "email": [30, 15, 2, 10, 4, 3], "social": [3, 3, 0, 3, 0, 0], "messenger": [4, 3, 1, 3, 1, 1]}, "mobile": {"ad": [5001, 4038, 1330, 2806, 223, 40], "organic": [1923, 1506, 548, 912, 91, 10], "direct": [2051, 1259, 381, 1170, 109, 26], "internal": [2558, 1142, 306, 1162, 161, 53], "email": [177, 124, 38, 79, 29, 4], "referral": [61, 39, 10, 20, 4, 1], "social": [24, 23, 7, 13, 1, 0], "messenger": [7, 5, 0, 6, 0, 0], "recommend": [1, 0, 0, 0, 0, 0]}}}, "prev": {"new": {"desktop": {"organic": [1327, 1127, 391, 578, 42, 8], "ad": [922, 670, 326, 600, 47, 10], "direct": [203, 98, 40, 100, 13, 3], "internal": [64, 25, 9, 43, 0, 0], "referral": [55, 32, 8, 13, 0, 0], "email": [12, 6, 3, 4, 2, 0], "social": [3, 1, 0, 3, 0, 0], "recommend": [2, 2, 0, 0, 0, 0], "messenger": [1, 1, 0, 1, 0, 0]}, "mobile": {"ad": [9638, 5806, 2155, 3763, 217, 17], "organic": [5589, 4738, 1797, 2085, 101, 15], "direct": [2127, 863, 323, 1047, 46, 13], "referral": [2505, 989, 221, 268, 17, 0], "internal": [616, 189, 72, 272, 8, 3], "social": [102, 63, 27, 60, 3, 0], "email": [76, 60, 23, 27, 16, 1], "recommend": [7, 5, 0, 0, 0, 0]}}, "returning": {"desktop": {"internal": [1744, 927, 279, 1354, 55, 13], "ad": [1239, 840, 372, 898, 53, 12], "organic": [786, 550, 223, 535, 30, 3], "direct": [698, 326, 116, 473, 20, 4], "referral": [31, 13, 4, 11, 0, 0], "email": [14, 10, 4, 8, 1, 0], "messenger": [3, 1, 0, 2, 0, 0], "social": [1, 1, 0, 0, 0, 0], "recommend": [1, 0, 0, 0, 0, 0]}, "mobile": {"ad": [5904, 3787, 1764, 3312, 242, 35], "organic": [2387, 1731, 838, 1187, 93, 18], "internal": [2777, 979, 570, 1589, 136, 32], "direct": [1930, 734, 329, 1031, 106, 26], "referral": [223, 146, 81, 98, 9, 1], "email": [73, 50, 24, 42, 9, 0], "social": [27, 15, 6, 16, 0, 0]}}}}, "kz": {"cur": {"new": {"desktop": {"ad": [802, 562, 139, 407, 21, 4], "organic": [211, 172, 45, 74, 3, 0], "direct": [843, 64, 13, 39, 4, 0], "referral": [23, 19, 4, 10, 1, 1], "internal": [24, 16, 5, 11, 1, 0], "email": [11, 7, 1, 1, 0, 0], "social": [1, 1, 1, 1, 0, 0]}, "mobile": {"direct": [4929, 3327, 116, 2506, 26, 5], "ad": [6141, 3046, 674, 2186, 70, 9], "organic": [819, 613, 167, 234, 14, 2], "internal": [533, 227, 52, 86, 10, 1], "referral": [202, 152, 53, 63, 3, 3], "social": [132, 91, 24, 67, 3, 1], "email": [129, 68, 14, 18, 3, 0], "messenger": [1, 1, 0, 1, 0, 0]}}, "returning": {"desktop": {"ad": [1058, 777, 171, 766, 29, 4], "internal": [839, 588, 119, 577, 25, 7], "direct": [465, 247, 59, 236, 11, 3], "organic": [207, 149, 28, 151, 7, 0], "email": [24, 15, 3, 8, 4, 0], "referral": [22, 14, 3, 11, 0, 0], "messenger": [1, 1, 0, 1, 1, 0]}, "mobile": {"ad": [3328, 2164, 522, 1818, 78, 13], "direct": [989, 524, 159, 459, 43, 11], "internal": [1217, 462, 162, 480, 58, 5], "organic": [339, 237, 85, 154, 14, 2], "email": [74, 46, 16, 28, 7, 2], "referral": [74, 35, 17, 20, 3, 0], "social": [11, 6, 4, 5, 0, 0], "messenger": [1, 0, 0, 0, 0, 0]}}}, "prev": {"new": {"desktop": {"ad": [897, 408, 178, 611, 43, 12], "organic": [520, 408, 149, 206, 22, 8], "direct": [171, 109, 46, 77, 10, 3], "internal": [37, 27, 15, 25, 3, 0], "referral": [26, 18, 4, 9, 0, 0], "email": [15, 8, 4, 5, 1, 0], "messenger": [8, 6, 1, 2, 0, 0], "social": [1, 1, 0, 0, 0, 0]}, "mobile": {"ad": [23134, 7061, 1438, 6384, 191, 22], "direct": [4059, 1587, 456, 1640, 52, 12], "organic": [1800, 1358, 527, 688, 44, 14], "referral": [2346, 1011, 223, 276, 25, 4], "social": [331, 293, 116, 171, 9, 1], "internal": [458, 235, 86, 248, 16, 4], "email": [95, 80, 33, 40, 14, 4], "recommend": [4, 1, 0, 0, 0, 0]}}, "returning": {"desktop": {"ad": [1421, 721, 272, 1185, 67, 8], "internal": [1039, 678, 186, 769, 24, 1], "direct": [505, 273, 88, 321, 17, 4], "organic": [409, 275, 94, 278, 13, 6], "referral": [56, 22, 6, 29, 3, 1], "email": [23, 21, 10, 13, 1, 1], "messenger": [1, 0, 0, 1, 0, 0]}, "mobile": {"ad": [6155, 2442, 791, 3027, 121, 5], "direct": [1310, 500, 227, 662, 54, 15], "internal": [1242, 408, 195, 591, 52, 23], "organic": [725, 491, 252, 407, 36, 10], "referral": [200, 101, 46, 72, 5, 3], "social": [72, 66, 24, 45, 4, 1], "email": [49, 34, 14, 19, 3, 0], "recommend": [1, 1, 0, 0, 0, 0]}}}}, "uz": {"cur": {"new": {"desktop": {"ad": [326, 261, 45, 245, 5, 0], "organic": [226, 182, 33, 46, 2, 0], "direct": [153, 21, 4, 22, 0, 0], "internal": [10, 6, 2, 3, 0, 0], "referral": [5, 4, 0, 0, 0, 0], "email": [1, 1, 0, 0, 0, 0]}, "mobile": {"ad": [2451, 1202, 171, 996, 26, 5], "organic": [674, 522, 88, 120, 1, 0], "direct": [181, 107, 14, 71, 2, 1], "referral": [86, 62, 20, 22, 0, 0], "social": [28, 22, 3, 20, 0, 0], "internal": [50, 19, 7, 21, 0, 0], "email": [2, 1, 1, 1, 0, 0]}}, "returning": {"desktop": {"ad": [329, 268, 54, 273, 6, 2], "internal": [154, 87, 27, 110, 0, 0], "organic": [127, 95, 19, 68, 1, 0], "direct": [102, 50, 22, 69, 2, 0], "referral": [4, 3, 1, 2, 0, 0], "email": [1, 1, 1, 1, 0, 0], "recommend": [1, 0, 0, 1, 0, 0]}, "mobile": {"ad": [1116, 764, 160, 695, 15, 3], "organic": [191, 142, 38, 65, 0, 0], "direct": [117, 77, 24, 51, 2, 1], "internal": [162, 75, 18, 72, 5, 0], "referral": [30, 22, 3, 5, 0, 0], "social": [3, 2, 0, 1, 0, 0], "messenger": [2, 2, 0, 2, 1, 0], "email": [1, 1, 1, 1, 0, 0]}}}, "prev": {"new": {"desktop": {"organic": [285, 244, 67, 100, 6, 1], "ad": [127, 71, 27, 93, 5, 0], "direct": [51, 39, 16, 24, 2, 2], "referral": [6, 4, 0, 2, 0, 0], "internal": [7, 3, 2, 2, 1, 0], "email": [5, 0, 0, 0, 0, 0]}, "mobile": {"ad": [7024, 1356, 229, 2947, 68, 3], "organic": [719, 555, 196, 244, 9, 2], "direct": [645, 497, 178, 245, 8, 4], "internal": [85, 41, 15, 53, 1, 1], "referral": [89, 48, 24, 30, 5, 1], "social": [58, 44, 20, 29, 1, 0], "email": [3, 3, 2, 2, 2, 1]}}, "returning": {"desktop": {"internal": [207, 123, 42, 145, 10, 1], "organic": [129, 88, 36, 73, 2, 1], "ad": [110, 73, 30, 81, 5, 1], "direct": [95, 61, 14, 57, 2, 2], "email": [2, 1, 0, 1, 0, 0]}, "mobile": {"ad": [1938, 473, 161, 1123, 24, 6], "direct": [268, 126, 64, 127, 7, 2], "organic": [165, 123, 55, 68, 2, 0], "internal": [218, 81, 39, 103, 7, 1], "referral": [30, 21, 15, 19, 4, 2], "social": [13, 13, 5, 6, 1, 0], "email": [2, 2, 0, 0, 0, 0], "recommend": [1, 1, 1, 1, 0, 0], "messenger": [1, 1, 1, 1, 0, 0]}}}}, "kg": {"cur": {"new": {"desktop": {"ad": [94, 80, 23, 25, 1, 0], "organic": [31, 28, 9, 11, 0, 0], "direct": [8, 3, 2, 6, 0, 0], "referral": [2, 1, 0, 1, 0, 0]}, "mobile": {"ad": [1355, 853, 177, 187, 5, 0], "organic": [90, 74, 23, 32, 1, 0], "direct": [45, 25, 13, 20, 1, 0], "social": [16, 13, 1, 3, 0, 0], "internal": [26, 12, 3, 8, 0, 0], "referral": [2, 2, 0, 0, 0, 0]}}, "returning": {"desktop": {"internal": [113, 96, 21, 87, 1, 1], "ad": [51, 43, 17, 26, 2, 0], "direct": [40, 29, 9, 27, 0, 0], "organic": [28, 20, 9, 20, 2, 0], "referral": [4, 2, 0, 0, 0, 0]}, "mobile": {"ad": [817, 404, 120, 137, 8, 0], "internal": [96, 43, 7, 44, 0, 0], "organic": [46, 41, 20, 35, 2, 1], "direct": [57, 34, 13, 36, 3, 0], "referral": [1, 1, 0, 0, 0, 0]}}}, "prev": {"new": {"desktop": {"ad": [67, 49, 10, 9, 2, 0], "organic": [17, 14, 2, 2, 0, 0], "direct": [3, 1, 0, 0, 0, 0], "referral": [2, 1, 0, 0, 0, 0]}, "mobile": {"ad": [790, 506, 94, 87, 2, 0], "organic": [68, 51, 16, 17, 0, 0], "direct": [38, 15, 5, 9, 0, 0], "internal": [12, 7, 2, 3, 0, 0], "referral": [2, 2, 1, 1, 0, 0], "social": [1, 1, 1, 1, 0, 0]}}, "returning": {"desktop": {"internal": [109, 74, 14, 70, 1, 0], "ad": [34, 26, 11, 13, 0, 0], "direct": [33, 17, 1, 14, 0, 0], "organic": [16, 15, 4, 14, 0, 0], "referral": [1, 0, 0, 0, 0, 0]}, "mobile": {"ad": [512, 243, 77, 71, 4, 0], "internal": [35, 13, 2, 9, 1, 0], "direct": [31, 11, 5, 9, 0, 0], "organic": [19, 11, 3, 4, 0, 0], "referral": [1, 1, 1, 1, 1, 1]}}}}};
+const COUNTRIES = [{"key": "aze", "name": "Askona AZE", "domain": "askonalife.az", "colorVar": "--c-aze", "countryName": "Азербайджан", "hasPrev": true, "compareMode": "yoy", "prevRangeLabel": "11–17 августа 2025"}, {"key": "by", "name": "askona.by", "domain": "askona.by", "colorVar": "--c-by", "countryName": "Беларусь", "hasPrev": true, "compareMode": "yoy", "prevRangeLabel": "11–17 августа 2025"}, {"key": "kz", "name": "Askona.KZ", "domain": "askona.kz", "colorVar": "--c-kz", "countryName": "Казахстан", "hasPrev": true, "compareMode": "yoy", "prevRangeLabel": "11–17 августа 2025"}, {"key": "uz", "name": "askona.uz", "domain": "askona.uz", "colorVar": "--c-uz", "countryName": "Узбекистан", "hasPrev": true, "compareMode": "yoy", "prevRangeLabel": "11–17 августа 2025"}, {"key": "kg", "name": "Askona KG", "domain": "askona.kg", "colorVar": "--c-kg", "countryName": "Кыргызстан", "hasPrev": true, "compareMode": "mom", "prevRangeLabel": "13–19 июля 2026"}];
+const NOTES = {};
+
+const CHANNEL_LABELS = {
+  ad: "Реклама", organic: "SEO", direct: "Прямые", referral: "Переходы по ссылкам",
+  internal: "Внутренние переходы", email: "Рассылки", social: "Соцсети",
+  messenger: "Мессенджеры", recommend: "Рекомендательные системы", none: "Не определено"
+};
+const CHANNEL_ORDER = ["ad","organic","direct","referral","internal","email","social","messenger","recommend","none"];
+// Index 0 = total traffic per channel ("Посетители", no productEventType) — this is
+// Metrika's own ecommerce funnel starting point, one step before "Листинг".
+const STEP_LABELS = ["Посетители","Листинг","Клик по товару","Карточка товара","Корзина","Покупка"];
+const FUNNEL_LEN = STEP_LABELS.length;
+const ZEROS = () => new Array(FUNNEL_LEN).fill(0);
+
+let currentCountry = COUNTRIES[0].key;
+// Which tree rows are expanded, keyed "<country>|<userType>" or "<country>|<userType>|<device>".
+// Level 0 ("Итого") and level 1 (Новые/Вернувшиеся) are always shown; only levels 2-3 collapse.
+const expandedRows = new Set();
+
+const fmt = n => Math.round(n).toLocaleString('ru-RU');
+function colorOf(c) { return `var(${c.colorVar})`; }
+function channelLabel(ch) { return CHANNEL_LABELS[ch] || ch; }
+function channelOrder() {
+  // known channels first (fixed order), then any unrecognised ids appended
+  const extra = new Set();
+  Object.values(DATA).forEach(country => Object.values(country).forEach(period =>
+    Object.values(period).forEach(ut => Object.values(ut).forEach(dev =>
+      Object.keys(dev).forEach(ch => { if (!CHANNEL_ORDER.includes(ch)) extra.add(ch); })))));
+  return CHANNEL_ORDER.concat([...extra]);
+}
+const CHANNELS = channelOrder();
+
+function sumDevices(obj) {
+  const out = {};
+  ["desktop","mobile"].forEach(dev => {
+    const d = (obj && obj[dev]) || {};
+    Object.keys(d).forEach(ch => {
+      if (!out[ch]) out[ch] = ZEROS();
+      d[ch].forEach((v,i) => out[ch][i] += v);
+    });
+  });
+  return out;
+}
+function forUserType(periodData, ut, device) {
+  if (!periodData) return {};
+  const u = periodData[ut];
+  if (!u) return {};
+  if (device === "all") return sumDevices(u);
+  return u[device] || {};
+}
+function getSegment(countryKey, period, userType, device) {
+  const cd = DATA[countryKey];
+  const periodData = cd ? cd[period] : null;
+  if (!periodData) return null;
+  if (userType === "all") {
+    const a = forUserType(periodData, "new", device), b = forUserType(periodData, "returning", device);
+    const out = {};
+    [a,b].forEach(o => Object.keys(o).forEach(ch => {
+      if (!out[ch]) out[ch] = ZEROS();
+      o[ch].forEach((v,i) => out[ch][i] += v);
+    }));
+    return out;
+  }
+  return forUserType(periodData, userType, device);
+}
+function totalsOf(seg) {
+  const t = ZEROS();
+  Object.keys(seg).forEach(ch => seg[ch].forEach((v,i) => t[i] += v));
+  return t;
+}
+function deltaChip(cur, prev) {
+  if (prev === null || prev === undefined) return `<span class="delta-chip delta-na">н/д пред. года</span>`;
+  if (prev === 0) { if (cur === 0) return `<span class="delta-chip delta-na">0</span>`; return `<span class="delta-chip delta-up">новое</span>`; }
+  const d = (cur - prev) / prev * 100;
+  const sign = d >= 0 ? '▲' : '▼';
+  const cls = d >= 0 ? 'delta-up' : 'delta-down';
+  return `<span class="delta-chip ${cls}">${sign} ${Math.abs(d).toFixed(0)}%</span>`;
+}
+// Конверсия = Покупка / Листинг (индексы 5 и 1 — «Посетители» на индексе 0 в счёт
+// не идёт, это конверсия именно из товарного листинга, не из общего трафика), в %.
+function convCellHtml(curVals, prevVals) {
+  const c = curVals[1] ? (curVals[5] / curVals[1] * 100) : null;
+  const curStr = c !== null ? c.toFixed(1) + '%' : '—';
+  let chip, prevSpan = '';
+  if (c === null) {
+    chip = `<span class="delta-chip delta-na">—</span>`;
+  } else {
+    const p = prevVals ? (prevVals[1] ? (prevVals[5] / prevVals[1] * 100) : null) : null;
+    chip = deltaChip(c, p);
+    if (p !== null && p !== undefined) prevSpan = `<span class="prev">(${p.toFixed(1)}%)</span>`;
+  }
+  return `<div class="cell-stack"><span><span class="cur">${curStr}</span>${prevSpan}</span>${chip}</div>`;
+}
+
+// Finds the single (new/returning x platform x channel) leaf whose YoY
+// change at a given funnel-step index contributes the most to the overall
+// change in that step's total — a mechanical signal for "where did most of
+// the swing come from", not a real cause (campaigns, outages, budget
+// changes etc. aren't in Metrika data). Granular on purpose: "канал
+// «Реклама»" alone doesn't say whether that was new or returning users, on
+// desktop or mobile — this picks the single most-specific leaf so the line
+// can name all three.
+const DRIVER_USER_TYPES = [['new', 'Новые'], ['returning', 'Вернувшиеся']];
+const DRIVER_DEVICES = [['mobile', 'Смартфоны'], ['desktop', 'ПК']];
+
+function topDriver(country, stepIndex) {
+  let best = null;
+  DRIVER_USER_TYPES.forEach(([ut, utLabel]) => {
+    DRIVER_DEVICES.forEach(([dev, devLabel]) => {
+      const cur = getSegment(country.key, 'cur', ut, dev) || {};
+      const prev = getSegment(country.key, 'prev', ut, dev) || {};
+      const channels = new Set([...Object.keys(cur), ...Object.keys(prev)]);
+      channels.forEach(ch => {
+        const c = (cur[ch] && cur[ch][stepIndex]) || 0;
+        const p = (prev[ch] && prev[ch][stepIndex]) || 0;
+        const d = c - p;
+        if (d !== 0 && (!best || Math.abs(d) > Math.abs(best.delta))) {
+          best = { utLabel, devLabel, channel: ch, cur: c, prev: p, delta: d };
+        }
+      });
+    });
+  });
+  return best;
+}
+
+// "год к году" for a normal YoY country, "к пред. месяцу" for a "mom" country
+// (see countries.json's compareMode) — keeps every auto-generated sentence
+// honest about what period it's actually comparing against.
+function compareLabel(country) {
+  return country.compareMode === 'mom' ? 'к пред. месяцу' : 'год к году';
+}
+
+function driverLine(country, curTotals, prevTotals, stepIndex, label) {
+  const cmp = compareLabel(country);
+  const totalDelta = curTotals[stepIndex] - prevTotals[stepIndex];
+  const totalPct = prevTotals[stepIndex] ? (totalDelta / prevTotals[stepIndex] * 100) : null;
+  const totalStr = totalPct !== null ? `${totalPct >= 0 ? '+' : ''}${totalPct.toFixed(0)}%` : 'н/д';
+  if (totalDelta === 0) return `${label}: без изменений ${cmp} (${fmt(curTotals[stepIndex])}).`;
+  const d = topDriver(country, stepIndex);
+  if (!d) return `${label}: ${totalStr} ${cmp}.`;
+  const share = Math.round(Math.abs(d.delta) / Math.abs(totalDelta) * 100);
+  return `${label}: ${totalStr} ${cmp} — основной вклад: ${d.utLabel}, ${d.devLabel}, канал «${channelLabel(d.channel)}» ` +
+         `(${fmt(d.prev)} → ${fmt(d.cur)}${share <= 150 ? `, ~${share}% от общего изменения` : ''}).`;
+}
+
+function insightsHtml(country) {
+  const note = NOTES[country.key];
+  const manualHtml = note
+    ? `<div class="insights-manual">${note}</div>`
+    : `<div class="insights-manual is-empty">Комментарий: — (реальные причины — акции, сбои, бюджеты — знает только команда; допишите, и я включу их сюда)</div>`;
+  if (!country.hasPrev) {
+    const naText = country.compareMode === 'mom'
+      ? 'Нет данных за месяц назад для сравнения — авто-подсказка недоступна.'
+      : 'Нет данных за прошлый год для сравнения — авто-подсказка недоступна.';
+    return `<div class="insights-card"><div class="insights-title">Причины отклонений</div>` +
+           `<div class="insights-auto">${naText}</div>${manualHtml}</div>`;
+  }
+  const curT = totalsOf(getSegment(country.key, 'cur', 'all', 'all') || {});
+  const prevT = totalsOf(getSegment(country.key, 'prev', 'all', 'all') || {});
+  const lines = [
+    driverLine(country, curT, prevT, 0, 'Посетители'),
+    driverLine(country, curT, prevT, 5, 'Заказы'),
+  ];
+  return `<div class="insights-card"><div class="insights-title">Причины отклонений</div>` +
+         `<div class="insights-auto">${lines.join('<br>')}</div>${manualHtml}</div>`;
+}
+
+// Tabs
+const tabRow = document.getElementById('tab-row');
+COUNTRIES.forEach(c => {
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (c.key === currentCountry ? ' active' : '');
+  btn.dataset.key = c.key;
+  btn.innerHTML = `<span class="dot" style="background:${colorOf(c)}"></span>${c.name}`;
+  btn.style.setProperty('--accent', colorOf(c));
+  btn.addEventListener('click', () => { currentCountry = c.key; render(); });
+  tabRow.appendChild(btn);
+});
+
+function updateActiveStates() {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const active = b.dataset.key === currentCountry;
+    b.classList.toggle('active', active);
+    b.style.background = active ? colorOf(COUNTRIES.find(c=>c.key===currentCountry)) : '';
+  });
+}
+
+// One row of the collapsible tree. `key` (when set) identifies this row in
+// `expandedRows`; rows without a key (leaf channel rows) aren't collapsible.
+function treeRowHtml(level, label, curT, prevT, key) {
+  const expandable = !!key;
+  const expanded = expandable && expandedRows.has(key);
+  const twisty = expandable
+    ? `<button type="button" class="twisty" data-key="${key}">${expanded ? '▾' : '▸'}</button>`
+    : `<span class="twisty placeholder">•</span>`;
+  const labelHtml = level === 3 ? `<span class="ch-name">${label}</span>` : `<span>${label}</span>`;
+  const firstTd = `<td style="padding-left:${10 + level * 18}px"><span class="row-cell">${twisty}${labelHtml}</span></td>`;
+  const stepTds = curT.map((v, i) => {
+    const p = prevT ? prevT[i] : null;
+    const prevSpan = (p !== null && p !== undefined) ? `<span class="prev">(${fmt(p)})</span>` : '';
+    return `<td><div class="cell-stack"><span><span class="cur">${fmt(v)}</span>${prevSpan}</span>${deltaChip(v, p)}</div></td>`;
+  }).join('');
+  const convTd = `<td>${convCellHtml(curT, prevT)}</td>`;
+  return `<tr class="lvl-${level}" data-key="${key || ''}">${firstTd}${stepTds}${convTd}</tr>`;
+}
+
+function buildTreeRows(country) {
+  const totalCur = getSegment(country.key, 'cur', 'all', 'all') || {};
+  const totalPrev = country.hasPrev ? (getSegment(country.key, 'prev', 'all', 'all') || {}) : null;
+  const rows = [treeRowHtml(0, 'Итого и средние', totalsOf(totalCur), totalPrev ? totalsOf(totalPrev) : null, null)];
+
+  [['new', 'Новые посетители'], ['returning', 'Вернувшиеся посетители']].forEach(([ut, utLabel]) => {
+    const utKey = `${country.key}|${ut}`;
+    const utCur = getSegment(country.key, 'cur', ut, 'all') || {};
+    const utPrev = country.hasPrev ? (getSegment(country.key, 'prev', ut, 'all') || {}) : null;
+    rows.push(treeRowHtml(1, utLabel, totalsOf(utCur), utPrev ? totalsOf(utPrev) : null, utKey));
+    if (!expandedRows.has(utKey)) return;
+
+    [['mobile', 'Смартфоны'], ['desktop', 'ПК']].forEach(([dev, devLabel]) => {
+      const devKey = `${utKey}|${dev}`;
+      const devCur = getSegment(country.key, 'cur', ut, dev) || {};
+      const devPrev = country.hasPrev ? (getSegment(country.key, 'prev', ut, dev) || {}) : null;
+      rows.push(treeRowHtml(2, devLabel, totalsOf(devCur), devPrev ? totalsOf(devPrev) : null, devKey));
+      if (!expandedRows.has(devKey)) return;
+
+      CHANNELS.forEach(ch => {
+        const vals = devCur[ch];
+        if (!vals || !vals.some(v => v > 0)) return;
+        const pvals = devPrev ? (devPrev[ch] || ZEROS()) : null;
+        rows.push(treeRowHtml(3, channelLabel(ch), vals, pvals, null));
+      });
+    });
+  });
+  return rows.join('');
+}
+
+function renderTree(country) {
+  const section = document.createElement('section');
+  section.className = 'seg-block';
+  section.innerHTML = '<h2>Воронка по сегментам</h2>';
+
+  const card = document.createElement('div');
+  card.className = 'table-card';
+  const scroll = document.createElement('div');
+  scroll.className = 'table-scroll';
+  const table = document.createElement('table');
+  table.className = 'seg-table tree-table';
+  const thead = '<thead><tr><th>Сегмент</th>' + STEP_LABELS.map(s => `<th>${s}</th>`).join('') + '<th>Конверсия в покупку</th></tr></thead>';
+  table.innerHTML = thead + `<tbody>${buildTreeRows(country)}</tbody>`;
+  scroll.appendChild(table);
+  card.appendChild(scroll);
+  section.appendChild(card);
+  return section;
+}
+
+// Expand/collapse clicks — the whole row is clickable, not just the arrow
+// (event delegation: the container's children are replaced on every
+// render(), but the container node itself isn't).
+document.getElementById('segments-container').addEventListener('click', e => {
+  const row = e.target.closest('tr[data-key]');
+  if (!row || !row.dataset.key) return;
+  const key = row.dataset.key;
+  if (expandedRows.has(key)) expandedRows.delete(key); else expandedRows.add(key);
+  render();
+});
+
+function render() {
+  updateActiveStates();
+  const country = COUNTRIES.find(c => c.key === currentCountry);
+  document.documentElement.style.setProperty('--accent-current', colorOf(country));
+
+  const prevNote = document.getElementById('prev-note');
+  if (country.compareMode === 'mom') {
+    prevNote.textContent = country.hasPrev
+      ? `${country.countryName}: сравнение не год к году, а к аналогичной неделе месяц назад (${country.prevRangeLabel}) — счётчик пока не проработал полный год.`
+      : `${country.countryName}: сравнение недоступно даже к месяцу назад — счётчик запущен слишком недавно.`;
+  } else {
+    prevNote.textContent = country.hasPrev ? '' : `${country.countryName}: сравнение год к году недоступно для этого периода.`;
+  }
+
+  const kpiGrid = document.getElementById('kpi-grid');
+  kpiGrid.innerHTML = '';
+  const allCur = getSegment(country.key, 'cur', 'all', 'all') || {};
+  const allPrev = country.hasPrev ? (getSegment(country.key, 'prev', 'all', 'all') || {}) : null;
+  const t = totalsOf(allCur), tp = allPrev ? totalsOf(allPrev) : null;
+  const crCur = t[0] ? (t[5] / t[0] * 100) : 0;
+  const crPrev = tp && tp[0] ? (tp[5] / tp[0] * 100) : null;
+  const kpis = [
+    { lbl: 'Посетители', cur: t[0], prev: tp ? tp[0] : null, isPercent: false },
+    { lbl: 'Заказы', cur: t[5], prev: tp ? tp[5] : null, isPercent: false },
+    { lbl: 'Конверсия (весь трафик)', cur: crCur, prev: crPrev, isPercent: true },
+  ];
+  kpis.forEach(k => {
+    const card = document.createElement('div');
+    card.className = 'kpi-card';
+    card.style.setProperty('--accent', colorOf(country));
+    const curStr = k.isPercent ? k.cur.toFixed(2) + '%' : fmt(k.cur);
+    const prevStr = (k.prev !== null && k.prev !== undefined) ? (k.isPercent ? k.prev.toFixed(2) + '%' : fmt(k.prev)) : null;
+    const delta = (k.prev !== null && k.prev !== undefined) ? deltaChip(k.cur, k.prev) : '<span class="delta-chip delta-na">н/д пред. года</span>';
+    card.innerHTML = `<div class="lbl">${k.lbl}</div>` +
+      `<div class="val">${curStr}${prevStr !== null ? `<span class="kpi-prev">(${prevStr})</span>` : ''}</div>` +
+      `<div class="delta">${delta}</div>`;
+    kpiGrid.appendChild(card);
+  });
+
+  const container = document.getElementById('segments-container');
+  container.innerHTML = '';
+  container.appendChild(renderTree(country));
+  const insightsWrap = document.createElement('div');
+  insightsWrap.innerHTML = insightsHtml(country);
+  container.appendChild(insightsWrap.firstElementChild);
+}
+
+render();
+
+// Theme toggle (in-memory only, no storage)
+const themeBtn = document.getElementById('theme-btn');
+let manualTheme = null;
+themeBtn.addEventListener('click', () => {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const currentlyDark = manualTheme ? manualTheme === 'dark' : prefersDark;
+  manualTheme = currentlyDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', manualTheme);
+  themeBtn.textContent = manualTheme === 'dark' ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+});
+</script>
+</body>
+</html>
